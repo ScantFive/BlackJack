@@ -152,18 +152,6 @@ async function api(path, opts = {}) {
   return data;
 }
 
-async function ensureAuth() {
-  if (!token) {
-    const data = await api("/api/register", {
-      method: "POST",
-      body: JSON.stringify({ name: "Игрок" }),
-    });
-    token = data.token || null;
-    // В нашем API register не возвращает токен наружу — фиксим:
-    // на самом деле register возвращает publicPlayer без token.
-    // Поэтому сделаем отдельный запрос.
-  }
-}
 
 // Правильная инициализация: получаем токен из register
 async function register() {
