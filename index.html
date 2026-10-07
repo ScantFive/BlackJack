@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Блэкджек</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="table">
+    <header class="top">
+      <h1>Блэкджек</h1>
+      <div class="bank">Банк: <span id="bank">1000</span> ₽</div>
+    </header>
+
+    <section class="hand">
+      <h2>Дилер <span id="dealer-score" class="score"></span></h2>
+      <div id="dealer-cards" class="cards"></div>
+    </section>
+
+    <div id="message" class="message">Сделайте ставку и нажмите «Раздать»</div>
+
+    <section class="hand">
+      <h2>Вы <span id="player-score" class="score"></span></h2>
+      <div id="player-cards" class="cards"></div>
+    </section>
+
+    <section class="controls">
+      <div class="bet-row">
+        <label for="bet-input">Ставка:</label>
+        <input type="number" id="bet-input" min="1" value="50" step="10">
+      </div>
+      <div class="buttons">
+        <button id="btn-deal">Раздать</button>
+        <button id="btn-hit" disabled>Ещё</button>
+        <button id="btn-stand" disabled>Стоп</button>
+        <button id="btn-reset" hidden>Новая игра</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

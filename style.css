@@ -1,0 +1,177 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background: radial-gradient(circle at center, #1f7a4d 0%, #0d4026 100%);
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px 10px;
+}
+
+.table {
+  width: 100%;
+  max-width: 720px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 3px solid #c9a227;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #f5d76e;
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin: 10px 0;
+  font-weight: 500;
+}
+
+.bank {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.score {
+  opacity: 0.8;
+  font-size: 0.95rem;
+}
+
+.hand {
+  margin-top: 16px;
+}
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  min-height: 110px;
+}
+
+.card {
+  width: 72px;
+  height: 104px;
+  background: #fff;
+  color: #222;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 6px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.4);
+  animation: deal 0.3s ease-out;
+}
+
+.card.red {
+  color: #c0392b;
+}
+
+.card .suit-center {
+  align-self: center;
+  font-size: 1.8rem;
+}
+
+.card.back {
+  background: repeating-linear-gradient(45deg, #1b3a8a, #1b3a8a 8px, #2d55b8 8px, #2d55b8 16px);
+  border: 3px solid #fff;
+}
+
+@keyframes deal {
+  from { transform: translateY(-20px) scale(0.9); opacity: 0; }
+  to   { transform: none; opacity: 1; }
+}
+
+.message {
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin: 18px 0;
+  min-height: 2em;
+  color: #f5d76e;
+}
+
+.message.win { color: #7CFC00; }
+.message.lose { color: #ff6b6b; }
+
+.controls {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+
+.bet-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+input[type="number"] {
+  width: 110px;
+  padding: 8px;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: none;
+  text-align: center;
+}
+
+.buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  border-radius: 10px;
+  background: #f5d76e;
+  color: #222;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background: #ffe48a;
+  transform: translateY(-2px);
+}
+
+button:disabled {
+  background: #666;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .card {
+    width: 60px;
+    height: 88px;
+    font-size: 0.95rem;
+  }
+  .card .suit-center {
+    font-size: 1.4rem;
+  }
+}
