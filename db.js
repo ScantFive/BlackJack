@@ -1,11 +1,12 @@
 /*
  * Локальная база данных на основе localStorage.
- * Данные хранятся только в браузере этого устройства.
+ * Банк, статистика и прогресс мини-игры сохраняются между перезагрузками.
  */
 (function (global) {
   "use strict";
 
-  const KEY = "blackjack.db.v1";
+  const KEY = "blackjack.db.v2";
+  const LEGACY_KEY = "blackjack.db.v1";
   const START_BANK = 1000;
 
   function defaults() {
@@ -18,17 +19,24 @@
 
   function load() {
     try {
-      const raw = localStorage.getItem(KEY);
+      const raw = localStorage.getItem(KEY) || localStorage.getItem(LEGACY_KEY);
       if (!raw) return defaults();
+
       const parsed = JSON.parse(raw);
       const base = defaults();
+
+      // Мягкая миграция: существующие деньги и статистика не теряются.
+      if (!localStorage.getItem(KEY)) {
+        localStorage.setItem(KEY, JSON.stringify(parsed));
+      }
+
       return {
-        bank: typeof parsed.bank === "number" ? parsed.bank : base.bank,
+        bank: typeof parsed.bank === "number" ? Math.max(0, Math.floor(parsed.bank)) : base.bank,
         stats: Object.assign(base.stats, parsed.stats || {}),
         minigame: Object.assign(base.minigame, parsed.minigame || {}),
       };
     } catch (e) {
-      console.warn("Не удалось прочитать базу данных:", e);
+      console.warn("Не удалось прочитать сохранение:", e);
       return defaults();
     }
   }
@@ -39,7 +47,7 @@
     try {
       localStorage.setItem(KEY, JSON.stringify(data));
     } catch (e) {
-      console.warn("Не удалось сохранить базу данных:", e);
+      console.warn("Не удалось сохранить данные:", e);
     }
   }
 
@@ -48,7 +56,7 @@
   }
 
   const DB = {
-    START_BANK: START_BANK,
+    START_BANK,
 
     getBank() {
       return data.bank;
@@ -71,17 +79,19 @@
       return { ...data.stats };
     },
 
-    // Возвращает данные мини-игры за сегодня; при смене даты счётчик обнуляется
     getMinigame() {
       const today = new Date().toDateString();
       if (data.minigame.date !== today) {
-        data.minigame = { date: today, plays: 0, earned: data.minigame.earned || 0 };
+        data.minigame = {
+          date: today,
+          plays: 0,
+          earned: data.minigame.earned || 0,
+        };
         save();
       }
       return { ...data.minigame };
     },
 
-    // Засчитывает одну попытку мини-игры и начисляет награду (если она есть)
     minigamePlay(reward) {
       DB.getMinigame();
       data.minigame.plays++;
@@ -93,13 +103,27 @@
       notify();
     },
 
-    // Полный сброс: банк, статистика и мини-игра
     reset() {
       data = defaults();
       save();
       notify();
     },
   };
+
+  // Если игра открыта в двух вкладках, изменения банка синхронизируются.
+  global.addEventListener("storage", (event) => {
+    if (event.key !== KEY || !event.newValue) return;
+
+    try {
+      const incoming = JSON.parse(event.newValue);
+      if (incoming && typeof incoming.bank === "number") {
+        data = load();
+        notify();
+      }
+    } catch (e) {
+      console.warn("Не удалось синхронизировать сохранение:", e);
+    }
+  });
 
   global.DB = DB;
 })(window);
