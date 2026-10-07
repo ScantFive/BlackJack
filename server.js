@@ -122,7 +122,7 @@ app.post("/api/register", (req, res) => {
     "INSERT INTO players (token, name) VALUES (?, ?)"
   ).run(token, name);
   const player = db.prepare("SELECT * FROM players WHERE id = ?").get(info.lastInsertRowid);
-  res.json(publicPlayer(player));
+  res.json({ token, ...publicPlayer(player) });
 });
 
 app.get("/api/me", auth, (req, res) => {
