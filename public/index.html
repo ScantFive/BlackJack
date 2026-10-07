@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Blackjack</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(circle at 50% 0%, #1b5e3a 0%, #0b2e1d 70%);
+    color: #fff;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 20px; }
+  header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 16px; background: rgba(0,0,0,0.35);
+    border-radius: 12px; margin-bottom: 20px;
+  }
+  header h1 { font-size: 20px; margin: 0; letter-spacing: 1px; }
+  .balance { font-size: 18px; font-weight: 700; color: #ffd54f; }
+  .table {
+    background: rgba(0,0,0,0.25);
+    border-radius: 16px;
+    padding: 24px;
+    min-height: 380px;
+    display: flex; flex-direction: column; justify-content: space-between;
+  }
+  .hand { margin: 12px 0; }
+  .hand-title { font-size: 13px; text-transform: uppercase; opacity: 0.7; margin-bottom: 8px; letter-spacing: 1px; }
+  .hand-total { font-size: 15px; margin-left: 8px; color: #ffd54f; }
+  .cards { display: flex; gap: 8px; flex-wrap: wrap; min-height: 96px; }
+  .card {
+    width: 64px; height: 92px; background: #fff; color: #111;
+    border-radius: 8px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+    animation: slideIn 0.25s ease-out;
+  }
+  .card.red { color: #d32f2f; }
+  .card.hidden {
+    background: repeating-linear-gradient(45deg, #1a237e, #1a237e 6px, #283593 6px, #283593 12px);
+    color: transparent;
+  }
+  .card .rank { font-size: 22px; }
+  .card .suit { font-size: 20px; }
+  @keyframes slideIn {
+    from { transform: translateY(-20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .controls {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    align-items: center; margin-top: 20px;
+  }
+  button {
+    padding: 12px 20px; border: none; border-radius: 8px;
+    font-size: 15px; font-weight: 600; cursor: pointer;
+    transition: transform 0.1s, opacity 0.2s;
+  }
+  button:hover:not(:disabled) { transform: translateY(-1px); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .primary { background: #ffd54f; color: #1a1a1a; }
+  .secondary { background: #37474f; color: #fff; }
+  .danger { background: #b71c1c; color: #fff; }
+  input[type=number] {
+    padding: 12px; border-radius: 8px; border: 1px solid #555;
+    background: #1a1a1a; color: #fff; width: 120px; font-size: 15px;
+  }
+  .msg {
+    margin-top: 16px; padding: 12px 16px; border-radius: 8px;
+    background: rgba(0,0,0,0.4); min-height: 20px; font-size: 15px;
+  }
+  .msg.win { background: rgba(76,175,80,0.3); }
+  .msg.lose { background: rgba(198,40,40,0.3); }
+  .msg.push { background: rgba(255,213,79,0.25); }
+  .stats {
+    margin-top: 20px; padding: 16px; background: rgba(0,0,0,0.3);
+    border-radius: 12px; font-size: 14px; line-height: 1.7;
+  }
+  .stats h3 { margin: 0 0 8px; font-size: 15px; }
+  .row { display: flex; justify-content: space-between; }
+  .row span:last-child { color: #ffd54f; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>♠ BLACKJACK ♥</h1>
+    <div class="balance">Баланс: <span id="balance">—</span></div>
+  </header>
+
+  <div class="table">
+    <div>
+      <div class="hand">
+        <div class="hand-title">Дилер <span class="hand-total" id="dealerTotal"></span></div>
+        <div class="cards" id="dealerCards"></div>
+      </div>
+    </div>
+    <div>
+      <div class="hand">
+        <div class="hand-title">Вы <span class="hand-total" id="playerTotal"></span></div>
+        <div class="cards" id="playerCards"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <input type="number" id="betInput" value="50" min="1" step="10" />
+    <button class="primary" id="btnDeal">Раздать</button>
+    <button class="secondary" id="btnHit" disabled>Взять</button>
+    <button class="secondary" id="btnStand" disabled>Хватит</button>
+    <button class="danger" id="btnReset">Сбросить прогресс</button>
+  </div>
+
+  <div class="msg" id="msg"></div>
+
+  <div class="stats">
+    <h3>Статистика</h3>
+    <div class="row"><span>Сыграно рук</span><span id="sPlayed">0</span></div>
+    <div class="row"><span>Побед</span><span id="sWon">0</span></div>
+    <div class="row"><span>Поражений</span><span id="sLost">0</span></div>
+    <div class="row"><span>Ничьих</span><span id="sPush">0</span></div>
+    <div class="row"><span>Всего поставлено</span><span id="sWagered">0</span></div>
+    <div class="row"><span>Всего получено</span><span id="sWonTotal">0</span></div>
+    <div class="row"><span>Чистый результат</span><span id="sNet">0</span></div>
+  </div>
+</div>
+
+<script>
+const API = "";
+let token = localStorage.getItem("bj_token");
+let busy = false;
+
+const $ = id => document.getElementById(id);
+
+function headers() {
+  return {
+    "Content-Type": "application/json",
+    "x-player-token": token || "",
+  };
+}
+
+async function api(path, opts = {}) {
+  const res = await fetch(API + path, {
+    ...opts,
+    headers: { ...headers(), ...(opts.headers || {}) },
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "Ошибка сервера");
+  return data;
+}
+
+async function ensureAuth() {
+  if (!token) {
+    const data = await api("/api/register", {
+      method: "POST",
+      body: JSON.stringify({ name: "Игрок" }),
+    });
+    token = data.token || null;
+    // В нашем API register не возвращает токен наружу — фиксим:
+    // на самом деле register возвращает publicPlayer без token.
+    // Поэтому сделаем отдельный запрос.
+  }
+}
+
+// Правильная инициализация: получаем токен из register
+async function register() {
+  const res = await fetch("/api/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name: "Игрок" }),
+  });
+  const data = await res.json();
+  if (data.token) {
+    token = data.token;
+    localStorage.setItem("bj_token", token);
+  }
+}
+
+async function loadMe() {
+  const me = await api("/api/me");
+  renderBalance(me.balance);
+  renderStats(me.stats);
+  return me;
+}
+
+function renderBalance(b) {
+  $("balance").textContent = b;
+}
+
+function renderStats(s) {
+  $("sPlayed").textContent = s.hands_played;
+  $("sWon").textContent = s.hands_won;
+  $("sLost").textContent = s.hands_lost;
+  $("sPush").textContent = s.hands_pushed;
+  $("sWagered").textContent = s.total_wagered;
+  $("sWonTotal").textContent = s.total_won;
+  const net = s.total_won - s.total_wagered;
+  const netEl = $("sNet");
+  netEl.textContent = net;
+  netEl.style.color = net >= 0 ? "#81c784" : "#e57373";
+}
+
+function cardHtml(card, hidden = false) {
+  if (hidden || card.r === "?") {
+    return `<div class="card hidden"></div>`;
+  }
+  const red = card.s === "♥" || card.s === "♦";
+  return `<div class="card ${red ? "red" : ""}">
+    <div class="rank">${card.r}</div>
+    <div class="suit">${card.s}</div>
+  </div>`;
+}
+
+function renderCards(playerCards, dealerCards, hideDealerHole) {
+  $("playerCards").innerHTML = playerCards.map(c => cardHtml(c)).join("");
+  $("dealerCards").innerHTML = dealerCards
+    .map((c, i) => cardHtml(c, hideDealerHole && i === 1))
+    .join("");
+}
+
+function setMsg(text, cls = "") {
+  const el = $("msg");
+  el.textContent = text;
+  el.className = "msg " + cls;
+}
+
+function setControls(state) {
+  // state: "idle" | "playing" | "finished"
+  $("btnDeal").disabled = state === "playing" || busy;
+  $("btnHit").disabled = state !== "playing" || busy;
+  $("btnStand").disabled = state !== "playing" || busy;
+  $("betInput").disabled = state === "playing";
+}
+
+const outcomeText = {
+  win: ["Вы выиграли!", "win"],
+  blackjack: ["БЛЭКДЖЕК! Победа!", "win"],
+  dealer_bust: ["Дилер перебрал — вы выиграли!", "win"],
+  lose: ["Вы проиграли.", "lose"],
+  bust: ["Перебор — вы проиграли.", "lose"],
+  push: ["Ничья. Ставка возвращена.", "push"],
+};
+
+async function deal() {
+  if (busy) return;
+  busy = true;
+  try {
+    const bet = parseInt($("betInput").value, 10);
+    const data = await api("/api/deal", {
+      method: "POST",
+      body: JSON.stringify({ bet }),
+    });
+    renderBalance(data.balance ?? (await loadMe()).balance);
+    renderCards(data.playerCards, data.dealerCards, data.state === "playing");
+    $("playerTotal").textContent = data.playerTotal ? `(${data.playerTotal})` : "";
+    $("dealerTotal").textContent = data.dealerTotal ? `(${data.dealerTotal})` : "";
+
+    if (data.state === "finished") {
+      const [txt, cls] = outcomeText[data.outcome] || ["Игра окончена", ""];
+      setMsg(txt + (data.payout ? ` Выплата: ${data.payout}` : ""), cls);
+      setControls("idle");
+      await loadMe();
+    } else {
+      setMsg("Ваш ход: возьмите карту или остановитесь.");
+      setControls("playing");
+    }
+  } catch (e) {
+    setMsg(e.message, "lose");
+  } finally {
+    busy = false;
+  }
+}
+
+async function hit() {
+  if (busy) return;
+  busy = true;
+  try {
+    const data = await api("/api/hit", { method: "POST" });
+    renderCards(data.playerCards, data.dealerCards, data.state === "playing");
+    $("playerTotal").textContent = data.playerTotal ? `(${data.playerTotal})` : "";
+    $("dealerTotal").textContent = data.dealerTotal ? `(${data.dealerTotal})` : "";
+
+    if (data.state === "finished") {
+      const [txt, cls] = outcomeText[data.outcome] || ["Игра окончена", ""];
+      setMsg(txt + (data.payout ? ` Выплата: ${data.payout}` : ""), cls);
+      setControls("idle");
+      renderBalance(data.balance);
+      await loadMe();
+    }
+  } catch (e) {
+    setMsg(e.message, "lose");
+  } finally {
+    busy = false;
+  }
+}
+
+async function stand() {
+  if (busy) return;
+  busy = true;
+  try {
+    const data = await api("/api/stand", { method: "POST" });
+    renderCards(data.playerCards, data.dealerCards, false);
+    $("playerTotal").textContent = `(${data.playerTotal})`;
+    $("dealerTotal").textContent = `(${data.dealerTotal})`;
+    const [txt, cls] = outcomeText[data.outcome] || ["Игра окончена", ""];
+    setMsg(txt + (data.payout ? ` Выплата: ${data.payout}` : ""), cls);
+    setControls("idle");
+    renderBalance(data.balance);
+    await loadMe();
+  } catch (e) {
+    setMsg(e.message, "lose");
+  } finally {
+    busy = false;
+  }
+}
+
+async function reset() {
+  if (!confirm("Сбросить весь прогресс? Баланс вернётся к 1000.")) return;
+  await api("/api/reset", { method: "POST" });
+  setMsg("Прогресс сброшен.");
+  renderCards([], [], false);
+  $("playerTotal").textContent = "";
+  $("dealerTotal").textContent = "";
+  setControls("idle");
+  await loadMe();
+}
+
+async function init() {
+  if (!token) {
+    await register();
+  }
+  try {
+    await loadMe();
+  } catch {
+    // токен протух — перерегистрируемся
+    await register();
+    await loadMe();
+  }
+  setControls("idle");
+  renderCards([], [], false);
+  setMsg("Сделайте ставку и нажмите «Раздать».");
+}
+
+$("btnDeal").addEventListener("click", deal);
+$("btnHit").addEventListener("click", hit);
+$("btnStand").addEventListener("click", stand);
+$("btnReset").addEventListener("click", reset);
+
+init();
+</script>
+</body>
+</html>
