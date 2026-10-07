@@ -1,0 +1,10 @@
+{
+  "name": "Блэкджек",
+  "short_name": "Блэкджек",
+  "lang": "ru",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0d4026",
+  "theme_color": "#0d4026",
+  "description": "Блэкджек с сохранением банка и статистики"
+}
