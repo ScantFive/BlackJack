@@ -2,65 +2,130 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0d4026">
+  <meta name="color-scheme" content="dark">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Блэкджек">
+  <meta name="format-detection" content="telephone=no">
   <title>Блэкджек</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <!-- ?v=2 сбрасывает старый кэш браузера. При следующих правках увеличивайте номер -->
+  <link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
-  <main class="table">
+  <div class="app">
+
     <header class="top">
-      <h1>Блэкджек</h1>
-      <div class="bank">Банк: <span id="bank">0</span> ₽</div>
+      <h1>♠ Блэкджек</h1>
+      <div class="bank-box" aria-live="polite">
+        <span class="bank-label">Банк</span>
+        <span><span id="bank">0</span>&nbsp;₽</span>
+      </div>
     </header>
 
-    <div class="stats">
-      Побед: <span id="stat-wins">0</span> ·
-      Поражений: <span id="stat-losses">0</span> ·
-      Ничьих: <span id="stat-pushes">0</span>
+    <div id="storage-warning" class="warning" role="alert" hidden>
+      Сохранение недоступно в этом режиме (приватная вкладка или встроенный просмотр),
+      поэтому банк пропадёт после закрытия страницы. Откройте игру в обычной вкладке браузера.
     </div>
 
-    <section class="hand">
-      <h2>Дилер <span id="dealer-score" class="score"></span></h2>
-      <div id="dealer-cards" class="cards"></div>
-    </section>
+    <nav class="tabs" role="tablist" aria-label="Разделы">
+      <button id="tab-game" class="tab active" role="tab" aria-selected="true" aria-controls="view-game">Игра</button>
+      <button id="tab-earn" class="tab" role="tab" aria-selected="false" aria-controls="view-earn">Заработок</button>
+    </nav>
 
-    <div id="message" class="message">Сделайте ставку и нажмите «Раздать»</div>
+    <main>
+      <!-- ===== Игра ===== -->
+      <section id="view-game" class="view" role="tabpanel" aria-labelledby="tab-game">
+        <div class="play-area">
+          <div class="stats">
+            Побед: <b id="stat-wins">0</b> · Поражений: <b id="stat-losses">0</b> · Ничьих: <b id="stat-pushes">0</b>
+          </div>
 
-    <section class="hand">
-      <h2>Вы <span id="player-score" class="score"></span></h2>
-      <div id="player-cards" class="cards"></div>
-    </section>
+          <div class="hands">
+            <section class="hand">
+              <h2>Дилер <span id="dealer-score" class="score"></span></h2>
+              <div id="dealer-cards" class="cards"></div>
+            </section>
 
-    <section class="controls">
-      <div class="bet-row">
-        <label for="bet-input">Ставка, ₽:</label>
-        <input type="number" id="bet-input" inputmode="numeric" min="1" value="50" step="1">
-      </div>
-      <div class="buttons">
-        <button id="btn-deal">Раздать</button>
-        <button id="btn-hit" disabled>Ещё</button>
-        <button id="btn-stand" disabled>Стоп</button>
-        <button id="btn-double" disabled>Дабл</button>
-        <button id="btn-reset" class="secondary" hidden>Начать заново</button>
-      </div>
-    </section>
-  </main>
+            <section class="hand">
+              <h2>Вы <span id="player-score" class="score"></span></h2>
+              <div id="player-cards" class="cards"></div>
+            </section>
+          </div>
 
-  <section class="table panel minigame">
-    <h2>Мини-игра: заработай</h2>
-    <p class="hint">Угадайте, будет ли следующая карта выше или ниже текущей. Верный ответ — +20 ₽. Ровные карты считаются проигрышем.</p>
-    <div id="mg-card" class="cards"></div>
-    <div class="buttons mg-buttons">
-      <button id="mg-lower">Ниже ▼</button>
-      <button id="mg-higher">Выше ▲</button>
-    </div>
-    <div id="mg-message" class="message small"></div>
-    <div id="mg-left" class="hint"></div>
-  </section>
+          <div id="message" class="message" aria-live="polite">Сделайте ставку и нажмите «Раздать»</div>
+        </div>
 
-  <script src="db.js"></script>
-  <script src="script.js"></script>
-  <script src="minigame.js"></script>
+        <div class="dock">
+          <!-- Перед раундом -->
+          <div id="pre-round">
+            <div class="bet-row">
+              <button id="bet-minus" class="step" aria-label="Уменьшить ставку на 10">−</button>
+              <input id="bet-input" type="text" inputmode="numeric" pattern="[0-9]*"
+                     autocomplete="off" aria-label="Ставка в рублях" value="50">
+              <button id="bet-plus" class="step" aria-label="Увеличить ставку на 10">+</button>
+            </div>
+            <div class="chips" id="chips">
+              <button class="chip" data-bet="10">10</button>
+              <button class="chip" data-bet="50">50</button>
+              <button class="chip" data-bet="100">100</button>
+              <button class="chip" data-bet="500">500</button>
+              <button class="chip" data-action="half">½</button>
+              <button class="chip" data-action="max">Макс</button>
+            </div>
+            <button id="btn-deal" class="primary big">Раздать</button>
+          </div>
+
+          <!-- Банк пуст -->
+          <div id="broke" hidden>
+            <p class="broke-text">Деньги закончились.</p>
+            <div class="btn-row two">
+              <button id="btn-go-earn" class="primary">Заработать</button>
+              <button id="btn-reset" class="danger">Начать заново</button>
+            </div>
+          </div>
+
+          <!-- Во время раунда -->
+          <div id="in-round" class="btn-row three" hidden>
+            <button id="btn-hit" class="primary">Ещё</button>
+            <button id="btn-stand" class="primary">Стоп</button>
+            <button id="btn-double" class="accent">Дабл</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== Мини-игра ===== -->
+      <section id="view-earn" class="view" role="tabpanel" aria-labelledby="tab-earn" hidden>
+        <div class="play-area earn">
+          <h2>Выше или ниже?</h2>
+          <p class="hint">
+            Угадайте, будет ли следующая карта старше или младше текущей.
+            Верный ответ — <b>+20&nbsp;₽</b> сразу на банк. Следующая карта всегда другого достоинства.
+            Туз — самая старшая.
+          </p>
+
+          <div id="mg-card" class="cards single"></div>
+
+          <div class="btn-row two">
+            <button id="mg-lower" class="primary big">Ниже ▼</button>
+            <button id="mg-higher" class="primary big">Выше ▲</button>
+          </div>
+
+          <div id="mg-message" class="message small" aria-live="polite"></div>
+          <div id="mg-left" class="hint"></div>
+        </div>
+      </section>
+    </main>
+
+  </div>
+
+  <script src="db.js?v=2"></script>
+  <script src="script.js?v=2"></script>
+  <script src="minigame.js?v=2"></script>
 </body>
 </html>
