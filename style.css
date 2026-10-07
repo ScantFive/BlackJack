@@ -21,6 +21,7 @@ body {
            max(10px, env(safe-area-inset-right))
            max(16px, env(safe-area-inset-bottom))
            max(10px, env(safe-area-inset-left));
+  overscroll-behavior-y: contain;
 }
 
 .table,
@@ -163,10 +164,11 @@ h2 {
 input[type="number"] {
   width: 120px;
   padding: 10px;
-  font-size: 16px; /* 16px не даёт iOS масштабировать страницу при фокусе */
+  font-size: 16px;
   border-radius: 8px;
   border: none;
   text-align: center;
+  min-height: 48px;
 }
 
 .buttons {
@@ -211,30 +213,59 @@ button:disabled {
   grid-template-columns: 1fr 1fr;
 }
 
-/* Hover-эффекты только на устройствах с мышью */
 @media (hover: hover) {
   button:hover:not(:disabled) {
     background: #ffe48a;
     transform: translateY(-2px);
   }
+
   button.secondary:hover:not(:disabled) {
     background: #c9302c;
   }
 }
 
-/* Планшеты и телефоны */
 @media (max-width: 600px) {
+  body {
+    gap: 10px;
+    padding-top: max(8px, env(safe-area-inset-top));
+  }
+
   .table,
   .panel {
     padding: 12px;
+    border-width: 2px;
+    border-radius: 12px;
+  }
+
+  .top {
+    align-items: flex-start;
+  }
+
+  .bank {
+    width: 100%;
+  }
+
+  .bet-row {
+    width: 100%;
+  }
+
+  input[type="number"] {
+    flex: 1;
+    min-width: 0;
+    width: auto;
+  }
+
+  .buttons {
+    max-width: none;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  button {
+    min-height: 52px;
   }
 
   .cards {
     gap: 6px;
-  }
-
-  .buttons {
-    grid-template-columns: repeat(2, 1fr);
   }
 
   .buttons button:last-child:nth-child(odd) {
@@ -242,22 +273,35 @@ button:disabled {
   }
 }
 
-/* Очень узкие экраны */
-@media (max-width: 360px) {
+@media (max-width: 380px) {
+  .table,
+  .panel {
+    padding: 10px;
+  }
+
+  .buttons {
+    gap: 8px;
+  }
+
   .card {
-    width: 50px;
+    width: 48px;
   }
 }
 
-/* Альбомная ориентация на телефоне: компактнее по высоте */
 @media (max-height: 500px) and (orientation: landscape) {
   body {
     gap: 10px;
   }
+
   .message {
     margin: 6px 0;
   }
+
   .controls {
     margin-top: 8px;
+  }
+
+  .card {
+    width: 46px;
   }
 }
