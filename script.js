@@ -3,10 +3,12 @@
 
   const SUITS = ["♠", "♥", "♦", "♣"];
   const RANKS = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
-  const START_BANK = 1000;
 
   const el = {
     bank: document.getElementById("bank"),
+    statWins: document.getElementById("stat-wins"),
+    statLosses: document.getElementById("stat-losses"),
+    statPushes: document.getElementById("stat-pushes"),
     dealerCards: document.getElementById("dealer-cards"),
     playerCards: document.getElementById("player-cards"),
     dealerScore: document.getElementById("dealer-score"),
@@ -16,15 +18,17 @@
     btnDeal: document.getElementById("btn-deal"),
     btnHit: document.getElementById("btn-hit"),
     btnStand: document.getElementById("btn-stand"),
+    btnDouble: document.getElementById("btn-double"),
     btnReset: document.getElementById("btn-reset"),
   };
 
   let deck = [];
   let player = [];
   let dealer = [];
-  let bank = START_BANK;
   let bet = 0;
   let inRound = false;
+
+  // ---------- Колода и подсчёт очков ----------
 
   function buildDeck() {
     const cards = [];
@@ -70,6 +74,8 @@
     return hand.length === 2 && handValue(hand) === 21;
   }
 
+  // ---------- Отрисовка ----------
+
   function renderCard(card, hidden) {
     const div = document.createElement("div");
     if (hidden) {
@@ -77,24 +83,39 @@
       return div;
     }
     div.className = "card" + (card.suit === "♥" || card.suit === "♦" ? " red" : "");
+
     const top = document.createElement("span");
     top.textContent = card.rank + card.suit;
+
     const center = document.createElement("span");
     center.className = "suit-center";
     center.textContent = card.suit;
+
     const bottom = document.createElement("span");
-    bottom.style.alignSelf = "flex-end";
-    bottom.style.transform = "rotate(180deg)";
+    bottom.className = "corner-bottom";
     bottom.textContent = card.rank + card.suit;
+
     div.append(top, center, bottom);
     return div;
   }
 
+  function setMessage(text, type) {
+    el.message.textContent = text;
+    el.message.className = "message" + (type ? " " + type : "");
+  }
+
   function render(revealDealer) {
+    const bank = DB.getBank();
+    const stats = DB.getStats();
+
     el.bank.textContent = bank;
+    el.statWins.textContent = stats.wins;
+    el.statLosses.textContent = stats.losses;
+    el.statPushes.textContent = stats.pushes;
 
     el.dealerCards.innerHTML = "";
     dealer.forEach((card, i) => {
+      // Вторая карта дилера скрыта, пока раунд не закончен
       el.dealerCards.appendChild(renderCard(card, !revealDealer && i === 1));
     });
 
@@ -108,34 +129,57 @@
     el.btnDeal.disabled = inRound || bank <= 0;
     el.btnHit.disabled = !inRound;
     el.btnStand.disabled = !inRound;
+    el.btnDouble.disabled = !(inRound && player.length === 2 && bank >= bet);
     el.betInput.disabled = inRound;
     el.btnReset.hidden = !(bank <= 0 && !inRound);
   }
 
-  function setMessage(text, type) {
-    el.message.textContent = text;
-    el.message.className = "message" + (type ? " " + type : "");
-  }
+  // ---------- Ставки и выплаты ----------
 
   function readBet() {
     const value = parseInt(el.betInput.value, 10);
     if (!Number.isFinite(value) || value < 1) {
-      setMessage("Введите корректную ставку (минимум 1)", "lose");
+      setMessage("Введите корректную ставку (минимум 1 ₽)", "lose");
       return null;
     }
-    if (value > bank) {
+    if (value > DB.getBank()) {
       setMessage("Недостаточно средств на банке", "lose");
       return null;
     }
     return value;
   }
 
+  // Сколько возвращается игроку при данном исходе (включая его ставку)
+  function payout(outcome) {
+    if (outcome === "blackjack") return bet + Math.floor(bet * 1.5);
+    if (outcome === "win") return bet * 2;
+    if (outcome === "push") return bet;
+    return 0;
+  }
+
+  function settle(outcome, text) {
+    inRound = false;
+    const amount = payout(outcome);
+    if (amount > 0) DB.setBank(DB.getBank() + amount);
+    DB.recordResult(outcome);
+
+    const type =
+      outcome === "win" || outcome === "blackjack" ? "win"
+      : outcome === "lose" ? "lose"
+      : "";
+    setMessage(text, type);
+    render(true);
+  }
+
+  // ---------- Действия игрока ----------
+
   function deal() {
+    if (inRound) return;
     const value = readBet();
     if (value === null) return;
 
+    DB.setBank(DB.getBank() - value);
     bet = value;
-    bank -= bet;
     player = [draw(), draw()];
     dealer = [draw(), draw()];
     inRound = true;
@@ -145,18 +189,13 @@
     const dealerBJ = isBlackjack(dealer);
 
     if (playerBJ || dealerBJ) {
-      inRound = false;
       if (playerBJ && dealerBJ) {
-        bank += bet;
-        setMessage("Блэкджек у обоих — ничья", "");
+        settle("push", "Блэкджек у обоих — ничья");
       } else if (playerBJ) {
-        const win = bet + Math.floor(bet * 1.5);
-        bank += win;
-        setMessage(`Блэкджек! Вы выиграли ${win - bet} ₽`, "win");
+        settle("blackjack", `Блэкджек! Выигрыш ${Math.floor(bet * 1.5)} ₽`);
       } else {
-        setMessage("У дилера блэкджек — вы проиграли", "lose");
+        settle("lose", "У дилера блэкджек — вы проиграли");
       }
-      render(true);
       return;
     }
 
@@ -167,7 +206,7 @@
     if (!inRound) return;
     player.push(draw());
     if (handValue(player) > 21) {
-      finishRound("bust");
+      settle("lose", "Перебор! Вы проиграли");
     } else {
       render(false);
     }
@@ -175,60 +214,78 @@
 
   function stand() {
     if (!inRound) return;
-    // Дилер добирает до 17
+    finishDealerTurn();
+  }
+
+  // Дабл: удваиваем ставку, берём ровно одну карту и сразу останавливаемся
+  function double() {
+    if (!inRound || player.length !== 2) return;
+    if (DB.getBank() < bet) {
+      setMessage("Недостаточно средств для дабла", "lose");
+      return;
+    }
+
+    DB.setBank(DB.getBank() - bet);
+    bet *= 2;
+    player.push(draw());
+
+    if (handValue(player) > 21) {
+      settle("lose", "Перебор после дабла! Вы проиграли");
+    } else {
+      finishDealerTurn();
+    }
+  }
+
+  // Дилер добирает до 17 и сравнивается с игроком
+  function finishDealerTurn() {
     while (handValue(dealer) < 17) {
       dealer.push(draw());
     }
-    finishRound("stand");
-  }
 
-  function finishRound(reason) {
-    inRound = false;
     const p = handValue(player);
     const d = handValue(dealer);
-    let result;
 
-    if (reason === "bust" || p > 21) {
-      result = "lose";
-      setMessage("Перебор! Вы проиграли", "lose");
-    } else if (d > 21) {
-      result = "win";
-      bank += bet * 2;
-      setMessage(`Дилер перебрал! Вы выиграли ${bet} ₽`, "win");
+    if (d > 21) {
+      settle("win", `Дилер перебрал! Выигрыш ${bet} ₽`);
     } else if (p > d) {
-      result = "win";
-      bank += bet * 2;
-      setMessage(`Вы выиграли ${bet} ₽`, "win");
+      settle("win", `Вы выиграли ${bet} ₽`);
     } else if (p < d) {
-      result = "lose";
-      setMessage("Дилер выиграл", "lose");
+      settle("lose", "Дилер выиграл");
     } else {
-      result = "push";
-      bank += bet;
-      setMessage("Ничья", "");
+      settle("push", "Ничья — ставка возвращена");
     }
-
-    render(true);
-    return result;
   }
 
   function reset() {
-    bank = START_BANK;
+    DB.reset();
+    bet = 0;
     player = [];
     dealer = [];
+    inRound = false;
     setMessage("Новая игра! Сделайте ставку");
     render(false);
   }
 
+  // ---------- Инициализация ----------
+
   el.btnDeal.addEventListener("click", deal);
   el.btnHit.addEventListener("click", hit);
   el.btnStand.addEventListener("click", stand);
+  el.btnDouble.addEventListener("click", double);
   el.btnReset.addEventListener("click", reset);
 
   el.betInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !inRound) deal();
+    if (e.key === "Enter") deal();
   });
 
+  // Обновляем экран при изменении банка (например, из мини-игры)
+  window.addEventListener("bank-changed", () => render(!inRound));
+
   deck = buildDeck();
+  if (DB.getBank() <= 0) {
+    setMessage("Банк пуст. Заработайте в мини-игре или начните заново");
+  } else {
+    setMessage("Сделайте ставку и нажмите «Раздать»");
+  }
   render(false);
 })();

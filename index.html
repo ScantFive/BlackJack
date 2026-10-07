@@ -2,7 +2,8 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0d4026">
   <title>Блэкджек</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -10,8 +11,14 @@
   <main class="table">
     <header class="top">
       <h1>Блэкджек</h1>
-      <div class="bank">Банк: <span id="bank">1000</span> ₽</div>
+      <div class="bank">Банк: <span id="bank">0</span> ₽</div>
     </header>
+
+    <div class="stats">
+      Побед: <span id="stat-wins">0</span> ·
+      Поражений: <span id="stat-losses">0</span> ·
+      Ничьих: <span id="stat-pushes">0</span>
+    </div>
 
     <section class="hand">
       <h2>Дилер <span id="dealer-score" class="score"></span></h2>
@@ -27,18 +34,33 @@
 
     <section class="controls">
       <div class="bet-row">
-        <label for="bet-input">Ставка:</label>
-        <input type="number" id="bet-input" min="1" value="50" step="10">
+        <label for="bet-input">Ставка, ₽:</label>
+        <input type="number" id="bet-input" inputmode="numeric" min="1" value="50" step="1">
       </div>
       <div class="buttons">
         <button id="btn-deal">Раздать</button>
         <button id="btn-hit" disabled>Ещё</button>
         <button id="btn-stand" disabled>Стоп</button>
-        <button id="btn-reset" hidden>Новая игра</button>
+        <button id="btn-double" disabled>Дабл</button>
+        <button id="btn-reset" class="secondary" hidden>Начать заново</button>
       </div>
     </section>
   </main>
 
+  <section class="table panel minigame">
+    <h2>Мини-игра: заработай</h2>
+    <p class="hint">Угадайте, будет ли следующая карта выше или ниже текущей. Верный ответ — +20 ₽. Ровные карты считаются проигрышем.</p>
+    <div id="mg-card" class="cards"></div>
+    <div class="buttons mg-buttons">
+      <button id="mg-lower">Ниже ▼</button>
+      <button id="mg-higher">Выше ▲</button>
+    </div>
+    <div id="mg-message" class="message small"></div>
+    <div id="mg-left" class="hint"></div>
+  </section>
+
+  <script src="db.js"></script>
   <script src="script.js"></script>
+  <script src="minigame.js"></script>
 </body>
 </html>
