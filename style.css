@@ -1,3 +1,59 @@
+:root,
+[data-cards="classic"] {
+  --card-face: #fff;
+  --card-ink: #222;
+  --card-red: #c0392b;
+  --card-back: repeating-linear-gradient(45deg, #1b3a8a, #1b3a8a 8px, #2d55b8 8px, #2d55b8 16px);
+  --card-back-border: #fff;
+  --card-glow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+/* ---------- Темы карточек ---------- */
+
+[data-cards="retro"] {
+  --card-face: #f1e3c4;
+  --card-ink: #2f2418;
+  --card-red: #8c2f1b;
+  --card-back: repeating-linear-gradient(90deg, #6e2d1f, #6e2d1f 6px, #93503a 6px, #93503a 12px);
+  --card-back-border: #f1e3c4;
+  --card-glow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+[data-cards="gold"] {
+  --card-face: linear-gradient(145deg, #fff7d9, #f0d27a);
+  --card-ink: #3b2a0a;
+  --card-red: #a3141f;
+  --card-back: repeating-linear-gradient(45deg, #8a6a12, #8a6a12 6px, #d9b53f 6px, #d9b53f 12px);
+  --card-back-border: #fff3c4;
+  --card-glow: 0 0 10px rgba(255, 215, 90, 0.55);
+}
+
+[data-cards="neon"] {
+  --card-face: #10122a;
+  --card-ink: #35f2ff;
+  --card-red: #ff4fd8;
+  --card-back:
+    repeating-linear-gradient(0deg, transparent 0 7px, rgba(53, 242, 255, 0.35) 7px 8px),
+    repeating-linear-gradient(90deg, transparent 0 7px, rgba(255, 79, 216, 0.35) 7px 8px),
+    #0b0b22;
+  --card-back-border: #35f2ff;
+  --card-glow: 0 0 12px rgba(53, 242, 255, 0.6);
+}
+
+[data-cards="cosmos"] {
+  --card-face: linear-gradient(160deg, #171a3d, #2b1b52);
+  --card-ink: #e8ecff;
+  --card-red: #ff8ab3;
+  --card-back:
+    radial-gradient(circle at 30% 30%, #8d74ff 0 7%, transparent 8%),
+    radial-gradient(circle at 72% 62%, #fff 0 2.5%, transparent 3.5%),
+    radial-gradient(circle at 22% 78%, #fff 0 2%, transparent 3%),
+    radial-gradient(circle at 80% 20%, #fff 0 1.5%, transparent 2.5%),
+    linear-gradient(160deg, #0a0d2e, #1e1450);
+  --card-back-border: #9aa7ff;
+  --card-glow: 0 0 10px rgba(154, 167, 255, 0.45);
+}
+
 :root {
   --felt-1: #1f7a4d;
   --felt-2: #0d4026;
@@ -20,13 +76,13 @@ html {
   height: 100%;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-  overscroll-behavior: none; /* без «резинки» и случайного pull-to-refresh */
+  overscroll-behavior: none;
 }
 
 body {
   margin: 0;
   height: 100%;
-  overflow: hidden; /* прокручивается только игровая область, а не вся страница */
+  overflow: hidden;
   font-family: "Segoe UI", Roboto, system-ui, Arial, sans-serif;
   color: #fff;
   background: radial-gradient(circle at 50% 30%, var(--felt-1) 0%, var(--felt-2) 100%) fixed;
@@ -36,11 +92,20 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+#bg {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  display: block;
+}
+
 /* ---------- Каркас приложения ---------- */
 
 .app {
   height: 100vh;
-  height: 100dvh; /* учитывает адресную строку мобильных браузеров */
+  height: 100dvh;
   max-width: 720px;
   margin: 0 auto;
   display: flex;
@@ -49,6 +114,8 @@ body {
   padding-right: env(safe-area-inset-right);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
+  background: rgba(0, 0, 0, 0.2);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 main {
@@ -71,7 +138,7 @@ main {
   overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
-  padding: 6px 14px 10px;
+  padding: 6px 14px 14px;
 }
 
 .play-area.earn {
@@ -79,10 +146,10 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
-/* ---------- Шапка и вкладки ---------- */
+/* ---------- Шапка, вкладки, уведомления ---------- */
 
 .top {
   display: flex;
@@ -100,7 +167,7 @@ h1 {
 }
 
 h2 {
-  margin: 8px 0;
+  margin: 10px 0 8px;
   font-size: clamp(1rem, 4vw, 1.1rem);
   font-weight: 600;
 }
@@ -111,7 +178,7 @@ h2 {
   gap: 8px;
   padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(245, 215, 110, 0.5);
   font-size: clamp(1rem, 4.5vw, 1.25rem);
   font-weight: 700;
@@ -128,28 +195,30 @@ h2 {
 
 .tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 6px;
   padding: 4px 14px 6px;
 }
 
 .tab {
   min-height: 44px;
-  background: rgba(0, 0, 0, 0.25);
+  padding: 0 4px;
+  background: rgba(0, 0, 0, 0.35);
   color: #fff;
   border: 1px solid transparent;
   border-radius: 10px;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 600;
 }
 
 .tab.active {
-  background: rgba(245, 215, 110, 0.18);
+  background: rgba(245, 215, 110, 0.2);
   border-color: var(--gold);
   color: var(--gold);
 }
 
-.warning {
+.warning,
+.notice {
   margin: 4px 14px;
   padding: 8px 12px;
   border-radius: 10px;
@@ -157,6 +226,16 @@ h2 {
   border: 1px solid var(--gold-dark);
   font-size: 0.85rem;
   line-height: 1.35;
+}
+
+.notice.good {
+  background: #1d5a2a;
+  border-color: #7cfc00;
+}
+
+.notice.bad {
+  background: #5a1d1d;
+  border-color: #ff7b7b;
 }
 
 .fatal {
@@ -179,7 +258,7 @@ h2 {
 
 .stats {
   font-size: 0.85rem;
-  opacity: 0.85;
+  opacity: 0.9;
   text-align: center;
 }
 
@@ -201,10 +280,6 @@ h2 {
   padding: 2px 0;
 }
 
-.cards.single {
-  margin: 8px 0;
-}
-
 .card {
   flex: none;
   width: var(--card-w);
@@ -214,23 +289,23 @@ h2 {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background: #fff;
-  color: #222;
+  background: var(--card-face);
+  color: var(--card-ink);
   border-radius: 8px;
   font-size: calc(var(--card-w) * 0.2);
   font-weight: 700;
   line-height: 1.1;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45);
+  text-shadow: none;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45), var(--card-glow);
   animation: deal 0.28s ease-out;
 }
 
-/* Когда карт много, они частично перекрывают друг друга и не вылезают за экран */
 .cards.overlap .card + .card {
   margin-left: calc(var(--card-w) * -0.38);
 }
 
 .card.red {
-  color: #c0392b;
+  color: var(--card-red);
 }
 
 .card .center {
@@ -244,8 +319,8 @@ h2 {
 }
 
 .card.back {
-  background: repeating-linear-gradient(45deg, #1b3a8a, #1b3a8a 8px, #2d55b8 8px, #2d55b8 16px);
-  border: 3px solid #fff;
+  background: var(--card-back);
+  border: 3px solid var(--card-back-border);
 }
 
 @keyframes deal {
@@ -268,13 +343,18 @@ h2 {
 }
 
 .message.win  { color: #7cfc00; }
-.message.lose { color: #ff7b7b; }
+.message.lose { color: #ff8b8b; }
 
 .hint {
   margin: 4px 0;
   font-size: 0.9rem;
   line-height: 1.4;
-  opacity: 0.85;
+  opacity: 0.9;
+}
+
+.hint.fine {
+  font-size: 0.8rem;
+  opacity: 0.7;
 }
 
 /* ---------- Нижняя панель управления ---------- */
@@ -282,7 +362,7 @@ h2 {
 .dock {
   flex: none;
   padding: 10px 14px 12px;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.4);
   border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 
@@ -306,6 +386,7 @@ input {
   font-family: inherit;
   font-size: 20px; /* ≥16px — iOS не будет приближать страницу при фокусе */
   font-weight: 700;
+  text-shadow: none;
 }
 
 .chips {
@@ -349,7 +430,8 @@ button {
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  touch-action: manipulation; /* убирает задержку и двойной тап-зум */
+  touch-action: manipulation;
+  text-shadow: none;
   transition: transform 0.08s, filter 0.15s;
 }
 
@@ -370,7 +452,8 @@ button:disabled {
 }
 
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+#mine-canvas:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 2px;
 }
@@ -381,10 +464,154 @@ input:focus-visible {
   }
 }
 
-/* ---------- Мини-игра ---------- */
+/* ---------- Добыча руды ---------- */
 
-#view-earn .btn-row {
-  max-width: 420px;
+.mine-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  min-height: 1.6em;
+  margin-top: 4px;
+}
+
+.ore-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.ore-value {
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.mine-stage {
+  width: min(100%, 420px, 50dvh);
+  aspect-ratio: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  background: #14171d;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+#mine-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: pointer;
+  outline: none;
+}
+
+.hp {
+  width: min(100%, 420px, 50dvh);
+  height: 12px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.hp-bar {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, #ffb347, #ffd700);
+  transition: width 0.08s linear;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px 12px;
+  margin: 4px 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+}
+
+.legend .dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 5px;
+  border-radius: 50%;
+  vertical-align: middle;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+
+/* ---------- Магазин ---------- */
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+}
+
+.item.selected {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold);
+}
+
+.item-name {
+  font-weight: 700;
+}
+
+.item .preview {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 8px;
+  background: #000;
+}
+
+.item .preview canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.card-preview {
+  --card-w: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 50% 40%, #1f7a4d, #0d4026);
+}
+
+.card-preview .card {
+  margin: 0;
+  padding: 3px;
+  animation: none;
+  font-size: 9px;
+}
+
+.card-preview .card .center {
+  font-size: 15px;
+}
+
+.item button {
+  min-height: 44px;
+  font-size: 0.9rem;
+}
+
+.item button.short {
+  background: #7a6a3a;
+  color: #eee;
 }
 
 /* ---------- Большие экраны ---------- */
@@ -397,9 +624,13 @@ input:focus-visible {
     margin: 16px auto;
     border: 3px solid var(--gold-dark);
     border-radius: 20px;
-    background: rgba(0, 0, 0, 0.25);
+    background: rgba(0, 0, 0, 0.3);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     overflow: hidden;
+  }
+
+  .shop-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -409,6 +640,7 @@ input:focus-visible {
   .top { padding-inline: 10px; }
   .play-area, .dock, .tabs { padding-inline: 10px; }
   button { padding-inline: 8px; }
+  .tab { font-size: 0.85rem; }
 }
 
 /* ---------- Телефон в альбомной ориентации ---------- */
@@ -432,9 +664,11 @@ input:focus-visible {
 
   .message { margin: 4px 0; min-height: 1.6em; }
 
-  /* панель управления — слева от игрового поля не нужна, достаточно компактности */
   .dock { padding-block: 6px; }
   .bet-row, .chips { margin-bottom: 6px; }
+
+  .mine-stage,
+  .hp { width: min(100%, 420px, 46dvh); }
 }
 
 @media (prefers-reduced-motion: reduce) {

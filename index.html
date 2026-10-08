@@ -14,10 +14,12 @@
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-192.png">
-  <!-- ?v=2 сбрасывает старый кэш браузера. При следующих правках увеличивайте номер -->
-  <link rel="stylesheet" href="style.css?v=2">
+  <!-- ?v=3 сбрасывает старый кэш браузера. При следующих правках увеличивайте номер -->
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
+  <canvas id="bg" aria-hidden="true"></canvas>
+
   <div class="app">
 
     <header class="top">
@@ -28,19 +30,22 @@
       </div>
     </header>
 
+    <div id="notice" class="notice" role="status" hidden></div>
+
     <div id="storage-warning" class="warning" role="alert" hidden>
       Сохранение недоступно в этом режиме (приватная вкладка или встроенный просмотр),
-      поэтому банк пропадёт после закрытия страницы. Откройте игру в обычной вкладке браузера.
+      поэтому прогресс пропадёт после закрытия страницы. Откройте игру в обычной вкладке браузера.
     </div>
 
     <nav class="tabs" role="tablist" aria-label="Разделы">
-      <button id="tab-game" class="tab active" role="tab" aria-selected="true" aria-controls="view-game">Игра</button>
-      <button id="tab-earn" class="tab" role="tab" aria-selected="false" aria-controls="view-earn">Заработок</button>
+      <button class="tab active" id="tab-game" data-tab="game" role="tab" aria-selected="true">Игра</button>
+      <button class="tab" id="tab-mine" data-tab="mine" role="tab" aria-selected="false">Руда</button>
+      <button class="tab" id="tab-shop" data-tab="shop" role="tab" aria-selected="false">Магазин</button>
     </nav>
 
     <main>
       <!-- ===== Игра ===== -->
-      <section id="view-game" class="view" role="tabpanel" aria-labelledby="tab-game">
+      <section id="view-game" class="view" data-view="game" role="tabpanel">
         <div class="play-area">
           <div class="stats">
             Побед: <b id="stat-wins">0</b> · Поражений: <b id="stat-losses">0</b> · Ничьих: <b id="stat-pushes">0</b>
@@ -85,7 +90,7 @@
           <div id="broke" hidden>
             <p class="broke-text">Деньги закончились.</p>
             <div class="btn-row two">
-              <button id="btn-go-earn" class="primary">Заработать</button>
+              <button id="btn-go-earn" class="primary">Добывать руду</button>
               <button id="btn-reset" class="danger">Начать заново</button>
             </div>
           </div>
@@ -99,33 +104,45 @@
         </div>
       </section>
 
-      <!-- ===== Мини-игра ===== -->
-      <section id="view-earn" class="view" role="tabpanel" aria-labelledby="tab-earn" hidden>
+      <!-- ===== Добыча руды ===== -->
+      <section id="view-mine" class="view" data-view="mine" role="tabpanel" hidden>
         <div class="play-area earn">
-          <h2>Выше или ниже?</h2>
-          <p class="hint">
-            Угадайте, будет ли следующая карта старше или младше текущей.
-            Верный ответ — <b>+20&nbsp;₽</b> сразу на банк. Следующая карта всегда другого достоинства.
-            Туз — самая старшая.
-          </p>
-
-          <div id="mg-card" class="cards single"></div>
-
-          <div class="btn-row two">
-            <button id="mg-lower" class="primary big">Ниже ▼</button>
-            <button id="mg-higher" class="primary big">Выше ▲</button>
+          <div class="mine-head">
+            <span id="mine-ore-name" class="ore-name">—</span>
+            <span id="mine-ore-value" class="ore-value"></span>
           </div>
 
-          <div id="mg-message" class="message small" aria-live="polite"></div>
-          <div id="mg-left" class="hint"></div>
+          <div class="mine-stage">
+            <canvas id="mine-canvas" tabindex="0" aria-label="Камень с рудой. Нажимайте, чтобы добывать"></canvas>
+          </div>
+
+          <div class="hp" aria-hidden="true"><div id="mine-hp-bar" class="hp-bar"></div></div>
+          <div id="mine-hp-text" class="hint">Нажимайте на камень</div>
+
+          <div id="mine-message" class="message small" aria-live="polite"></div>
+          <div id="mine-stats" class="hint"></div>
+          <ul id="mine-legend" class="legend"></ul>
+          <p class="hint fine">Лимита нет. Автокликеры и программные клики не засчитываются.</p>
+        </div>
+      </section>
+
+      <!-- ===== Магазин ===== -->
+      <section id="view-shop" class="view" data-view="shop" role="tabpanel" hidden>
+        <div class="play-area">
+          <h2>Фоны</h2>
+          <div id="shop-bg" class="shop-grid"></div>
+          <h2>Карточки</h2>
+          <div id="shop-cards" class="shop-grid"></div>
         </div>
       </section>
     </main>
 
   </div>
 
-  <script src="db.js?v=2"></script>
-  <script src="script.js?v=2"></script>
-  <script src="minigame.js?v=2"></script>
+  <script src="db.js?v=3"></script>
+  <script src="backgrounds.js?v=3"></script>
+  <script src="script.js?v=3"></script>
+  <script src="mine.js?v=3"></script>
+  <script src="shop.js?v=3"></script>
 </body>
 </html>
